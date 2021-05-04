@@ -1,0 +1,27 @@
+#comando para generar el archivo de configuracion
+#telegraf --input-filter <input> --output-filter <output> config > telegraf.conf
+
+[global_tags]
+  user = "ususario"  #nombre del usuario, si no hay usa el del equipo
+  dc = "denver-01"	#en el ejemplo se usa para "tagear" la salida a la BD
+
+[agent]
+  #interval = "10s"	#intervalo para medida, debe ir a la par con el cliente REST
+
+#[[inputs.mem]]
+#plugins http para obtener http post request
+
+[[inputs.http]]
+  name_override = "dispositivoMonitor"
+  tagexclude = ["url", "host"]
+  data_format = "json"
+  #TODO: faltan los campos del json, no estoy seguro de como fomratearlos
+  #https://docs.influxdata.com/telegraf/v1.18/guides/using_http/
+
+
+[[outputs.influxdb]]
+  url = "http://127.0.0.1:8086
+  database = "nombre_bd"
+  precision = s
+  skip_database_creation = true
+  password = "contrasenya"
