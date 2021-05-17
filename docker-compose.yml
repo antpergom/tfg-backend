@@ -1,32 +1,62 @@
-version: "3"
+#The MIT License (MIT)
+
+#Copyright (c) 2021 Benjamin Cremer
+
+#Permission is hereby granted, free of charge, to any person obtaining a copy of
+#this software and associated documentation files (the "Software"), to deal in
+#the Software without restriction, including without limitation the rights to
+#use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+#the Software, and to permit persons to whom the Software is furnished to do so,
+#subject to the following conditions:
+
+#The above copyright notice and this permission notice shall be included in all
+#copies or substantial portions of the Software.
+
+#THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+#IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+#FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+#COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+#IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+#CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+#You can find the original repo at https://github.com/bcremer/docker-telegraf-influx-grafana-stack
+
+version: "3.6"
 services:
-  influxdb:
-    image: quay.io/influxdb/influxdb:v2.0.3
-    volumes:
-      # Mount for influxdb data directory and configuration
-      - .\influxDB:/root/.influxdbv2
-    ports:
-      - "8086:8086"
-  # Use the influx cli to set up an influxdb instance.
-  influxdb_cli:
-    links:
-      - influxdb
-    image: quay.io/influxdb/influxdb:v2.0.3
-    # Use these same configurations parameters in your telegraf configuration, mytelegraf.conf.
-    entrypoint:
-      influx setup --bucket sacProjectBucket -t 68SFzpQXRpVzjfAp8BJVq4-JX_OGymrpHW2WrG3pMwlGWQ2ZKtYJR5KxGoEFL-Qhd6qH9mpqD1GEDFMfhGPsog== -o sacProject --username=sacProject --password=12345abc --host=http://influxdb:8086 -f
-      # Wait for the influxd service in the influxdb container has fully bootstrapped before trying to setup an influxdb instance with the influxdb_cli service.
-    restart: on-failure:10
-    depends_on:
-      - influxdb
   telegraf:
-    image: telegraf
+    image: telegraf:1.18-alpine
+    volumes:
+      - ./telegraf/etc/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    depends_on:
+      - influxdb
     links:
       - influxdb
+    ports:
+      - "127.0.0.1:8125:8125/udp"
+
+  influxdb:
+    image: influxdb:1.8-alpine
+    env_file: configuration.env
+    ports:
+      - "127.0.0.1:8086:8086"
     volumes:
-      # Mount for telegraf config
-      - .\telegraf.conf:/var/lib/influxdb
+      - ./:/imports
+      - influxdb_data:/var/lib/influxdb
+
+  grafana:
+    image: grafana/grafana:7.5.4
     depends_on:
-      - influxdb_cli
+      - influxdb
+    env_file: configuration.env
+    links:
+      - influxdb
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning/:/etc/grafana/provisioning/
+      - ./grafana/dashboards/:/var/lib/grafana/dashboards/
+
 volumes:
-  influxdbv2:
+  grafana_data: {}
+  influxdb_data: {}
