@@ -1,1 +1,0 @@
-curl -i -XPOST --ipv4 'http://localhost:8080/telegraf' --data-binary '{"0": 20, "1": 16/05/2021 22:00:10}'

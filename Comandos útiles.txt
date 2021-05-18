@@ -1,0 +1,9 @@
+#Iniciar Docker
+    sudo dockerd &> /dev/null &
+
+#Probar POST
+    curl -i -XPOST --ipv4 'http://172.18.0.3:8080/telegraf' --data-binary '{"value1": 42, "value2": 42}'
+
+#Obtener IP del container de telegraf
+    sudo docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' sac_project_telegraf_1
+
