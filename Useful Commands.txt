@@ -1,0 +1,13 @@
+#Run Docker Daemon dettached
+    sudo dockerd &> /dev/null &
+
+#Try HTTP Request
+    curl -i -XPOST 'http://[telegraf IP]:8080/telegraf' --data-binary '{"id": 1, "beat": 60, "pressure": 100}'
+
+#Get Telegraf's containter's IP
+    sudo docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' sac_project_telegraf_1
+
+#Drop Database
+    influx
+    drop database influx
+
